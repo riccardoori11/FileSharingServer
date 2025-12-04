@@ -1,0 +1,11 @@
+you shouldn't catch an exception that you do not plan on handling in some way. You should consider how the application is going to systematically handle exceptions when you are designing it. This usually leads to having layers of error handling based on the abstractions - for example, you handle all SQL-related errors in your data access code so that the part of the application that is interacting with domain objects is not exposed to the fact that there is a DB under the hood somewhere.
+
+There are a few related code smells that you definitely want to avoid in addition to the "catch everything everywhere" smell.
+
+"catch, log, rethrow": if you want scoped based logging, then write a class that emits a log statement in its destructor when the stack is unrolling due to an exception (ala std::uncaught_exception()). All that you need to do is declare a logging instance in the scope that you are interested in and, voila, you have logging and no unnecessary try/catch logic.
+
+"catch, throw translated": this usually points to an abstraction problem. Unless you are implementing a federated solution where you are translating several specific exceptions into one more generic one, you probably have an unnecessary layer of abstraction... and don't say that "I might need it tomorrow".
+
+"catch, cleanup, rethrow": this is one of my pet-peeves. If you see a lot of this, then you should apply Resource Acquisition is Initialization techniques and place the cleanup portion in the destructor of a janitor object instance.
+
+I consider code that is littered with try/catch blocks to be a good target for code review and refactoring. It indicates that either exception handling is not well understood or the code has become an amœba and is in serious need of refactoring.
